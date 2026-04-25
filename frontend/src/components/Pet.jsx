@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SproutChat from './SproutChat.jsx';
 
 /**
  * The pet is a sprout that visually responds to mood.
@@ -7,6 +8,7 @@ import { useState } from 'react';
 export default function Pet({ pet, onRename }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(pet.name);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const submitRename = (e) => {
     e.preventDefault();
@@ -32,8 +34,20 @@ export default function Pet({ pet, onRename }) {
         <div className="absolute bottom-0 left-0 right-0 h-12 bg-moss-400/30
                         border-t-2 border-dashed border-ink/20" />
 
-        {/* Pet sprite */}
-        <PetSprite mood={pet.mood} />
+        {/* Pet sprite — click to chat */}
+        <button
+          onClick={() => setChatOpen(true)}
+          className="relative z-10 focus:outline-none group"
+          title={`Talk to ${pet.name}`}
+          aria-label={`Talk to ${pet.name}`}
+        >
+          <PetSprite mood={pet.mood} />
+          <span className="absolute -top-6 left-1/2 -translate-x-1/2 font-pixel text-[10px]
+                           bg-white border border-ink/20 rounded px-1.5 py-0.5 whitespace-nowrap
+                           opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            tap to chat
+          </span>
+        </button>
 
         {/* Mood badge */}
         <div className="absolute top-3 right-3 font-pixel text-sm uppercase
@@ -75,6 +89,8 @@ export default function Pet({ pet, onRename }) {
       <div className="font-pixel text-xs text-ink/40 uppercase tracking-widest">
         a small sprout
       </div>
+
+      {chatOpen && <SproutChat pet={pet} onClose={() => setChatOpen(false)} />}
     </div>
   );
 }

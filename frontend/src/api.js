@@ -49,4 +49,6 @@ export const api = {
   getJournal:       ()         => request('/journal'),
   addJournal:       (entry)    => request('/journal', { method: 'POST', body: entry }),
   deleteJournal:    (id)       => request(`/journal/${id}`, { method: 'DELETE' }),
+
+  chat: (message, history) => request('/chat', { method: 'POST', body: { message, history } }),
 };

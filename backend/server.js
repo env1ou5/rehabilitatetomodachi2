@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const petRoutes = require('./routes/pet');
 const questRoutes = require('./routes/quests');
 const journalRoutes = require('./routes/journal');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/auth', authRoutes);
 app.use('/pet', petRoutes);
 app.use('/quests', questRoutes);
 app.use('/journal', journalRoutes);
+app.use('/chat', chatRoutes);
 
 // 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
