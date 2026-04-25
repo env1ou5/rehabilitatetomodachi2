@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply font-body text-ink antialiased;
+    background-color: #FBF7EF;
+    /* Subtle paper-grain texture via layered tiny radial gradients */
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(42,37,32,0.06) 1px, transparent 0),
+      radial-gradient(circle at 13px 17px, rgba(42,37,32,0.04) 1px, transparent 0);
+    background-size: 24px 24px, 32px 32px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-cream-50 border-2 border-ink rounded-xl shadow-chunky;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 font-display font-bold
+           border-2 border-ink rounded-lg shadow-chunky-sm
+           transition-all duration-150 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0;
+  }
+  .btn-primary { @apply btn bg-moss-500 text-cream-50 hover:bg-moss-600; }
+  .btn-peach   { @apply btn bg-peach-500 text-ink hover:bg-peach-400; }
+  .btn-ghost   { @apply btn bg-transparent shadow-none border-ink/40 hover:bg-cream-100; }
+  .input {
+    @apply w-full px-3 py-2 bg-cream-50 border-2 border-ink rounded-lg
+           font-body text-ink placeholder:text-ink/40
+           focus:outline-none focus:ring-4 focus:ring-peach-400/40;
+  }
+  .label {
+    @apply block text-sm font-medium text-ink/80 mb-1.5 font-display;
+  }
+  .pixel-heading {
+    @apply font-pixel uppercase tracking-wider text-moss-700;
+  }
+}
+
+/* Custom checkbox-style for quest list */
+.quest-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #2A2520;
+  border-radius: 6px;
+  background: #FBF7EF;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms;
+  flex-shrink: 0;
+}
+.quest-check:checked {
+  background: #5C8268;
+}
+.quest-check:checked::after {
+  content: '✓';
+  color: #FBF7EF;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  line-height: 1;
+}
