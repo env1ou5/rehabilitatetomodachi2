@@ -26,6 +26,10 @@ app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 // Error fallthrough
 app.use((err, req, res, _next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON body' });
+  }
+
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });

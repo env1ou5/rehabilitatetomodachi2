@@ -6,7 +6,11 @@ const router = express.Router();
 
 // GET /journal — list entries (newest first), with optional limit
 router.get('/', requireAuth, async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+  const parsedLimit = Number.parseInt(req.query.limit, 10);
+  const limit = Number.isInteger(parsedLimit)
+    ? Math.min(Math.max(parsedLimit, 1), 100)
+    : 20;
+
   try {
     const result = await db.query(
       `SELECT id, mood, content, created_at
@@ -26,10 +30,14 @@ router.get('/', requireAuth, async (req, res) => {
 // POST /journal — create a new entry
 router.post('/', requireAuth, async (req, res) => {
   const { mood, content } = req.body || {};
+  const parsedMood = mood === undefined || mood === null || mood === ''
+    ? null
+    : Number(mood);
+
   if (!content || typeof content !== 'string' || content.trim().length === 0) {
     return res.status(400).json({ error: 'content required' });
   }
-  if (mood !== undefined && mood !== null && (mood < 1 || mood > 5)) {
+  if (parsedMood !== null && (!Number.isInteger(parsedMood) || parsedMood < 1 || parsedMood > 5)) {
     return res.status(400).json({ error: 'mood must be 1-5' });
   }
 
@@ -38,7 +46,7 @@ router.post('/', requireAuth, async (req, res) => {
       `INSERT INTO journal_entries (user_id, mood, content)
        VALUES ($1, $2, $3)
        RETURNING id, mood, content, created_at`,
-      [req.userId, mood ?? null, content.trim().slice(0, 5000)]
+      [req.userId, parsedMood, content.trim().slice(0, 5000)]
     );
     return res.status(201).json({ entry: result.rows[0] });
   } catch (err) {

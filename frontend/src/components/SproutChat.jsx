@@ -26,7 +26,7 @@ export default function SproutChat({ pet, onClose }) {
     setLoading(true);
 
     try {
-      const { reply } = await api.chat(text, newHistory);
+      const { reply } = await api.chat(text, history);
       setHistory([...newHistory, { role: 'assistant', content: reply }]);
     } catch {
       setHistory([...newHistory, { role: 'assistant', content: "I'm having trouble thinking right now... try again in a moment. 🍃" }]);

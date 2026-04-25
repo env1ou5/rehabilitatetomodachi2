@@ -9,23 +9,42 @@ function signToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
 
+function ensureAuthConfigured(res) {
+  if (process.env.JWT_SECRET) return true;
+  res.status(503).json({ error: 'Authentication is not configured' });
+  return false;
+}
+
 // POST /auth/register
 router.post('/register', async (req, res) => {
+  if (!ensureAuthConfigured(res)) return;
+
   const { username, email, password, petName } = req.body || {};
-  if (!username || !email || !password) {
+  const cleanUsername = typeof username === 'string' ? username.trim() : '';
+  const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+  const cleanPetName = typeof petName === 'string' ? petName.trim().slice(0, 50) : '';
+
+  if (!cleanUsername || !cleanEmail || typeof password !== 'string') {
     return res.status(400).json({ error: 'username, email, and password are required' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
+  if (cleanUsername.length > 50) {
+    return res.status(400).json({ error: 'Username must be 50 characters or less' });
+  }
+  if (cleanEmail.length > 255 || !cleanEmail.includes('@')) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
 
-  const client = await db.getClient();
+  let client;
   try {
+    client = await db.getClient();
     await client.query('BEGIN');
 
     const existing = await client.query(
       'SELECT id FROM users WHERE username = $1 OR email = $2',
-      [username, email]
+      [cleanUsername, cleanEmail]
     );
     if (existing.rows.length > 0) {
       await client.query('ROLLBACK');
@@ -36,38 +55,45 @@ router.post('/register', async (req, res) => {
     const userResult = await client.query(
       `INSERT INTO users (username, email, password_hash)
        VALUES ($1, $2, $3) RETURNING id, username, email`,
-      [username, email, hash]
+      [cleanUsername, cleanEmail, hash]
     );
     const user = userResult.rows[0];
 
     // Every user gets a pet automatically.
     await client.query(
       `INSERT INTO pets (user_id, name) VALUES ($1, $2)`,
-      [user.id, petName?.trim() || 'Buddy']
+      [user.id, cleanPetName || 'Buddy']
     );
 
     await client.query('COMMIT');
     return res.status(201).json({ user, token: signToken(user.id) });
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('register error:', err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Username or email already taken' });
+    }
     return res.status(500).json({ error: 'Failed to register' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
 // POST /auth/login
 router.post('/login', async (req, res) => {
+  if (!ensureAuthConfigured(res)) return;
+
   const { username, password } = req.body || {};
-  if (!username || !password) {
+  const login = typeof username === 'string' ? username.trim() : '';
+
+  if (!login || typeof password !== 'string') {
     return res.status(400).json({ error: 'username and password are required' });
   }
 
   try {
     const result = await db.query(
-      `SELECT id, username, email, password_hash FROM users WHERE username = $1 OR email = $1`,
-      [username]
+      `SELECT id, username, email, password_hash FROM users WHERE username = $1 OR email = $2`,
+      [login, login.toLowerCase()]
     );
     const user = result.rows[0];
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });

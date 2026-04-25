@@ -5,12 +5,23 @@ const db = require('../db');
 const { deriveMood, sobrietyDays } = require('../utils/petLogic');
 
 router.post('/', requireAuth, async (req, res) => {
-  const { message, history = [] } = req.body;
-  if (!message?.trim()) return res.status(400).json({ error: 'Message required' });
+  const { message, history = [] } = req.body || {};
+  if (typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'Message required' });
+  }
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(503).json({ error: 'AI chat is not configured' });
+  }
 
-  const petResult = await db.query('SELECT * FROM pets WHERE user_id = $1', [req.userId]);
-  const pet = petResult.rows[0];
-  if (!pet) return res.status(404).json({ error: 'Pet not found' });
+  let pet;
+  try {
+    const petResult = await db.query('SELECT * FROM pets WHERE user_id = $1', [req.userId]);
+    pet = petResult.rows[0];
+    if (!pet) return res.status(404).json({ error: 'Pet not found' });
+  } catch (err) {
+    console.error('chat pet lookup error:', err);
+    return res.status(500).json({ error: 'Failed to load pet' });
+  }
 
   const mood = deriveMood(pet);
   const days = sobrietyDays(pet);
@@ -21,8 +32,14 @@ Your current mood is "${mood}" (health: ${Math.round(pet.health)}/100, happiness
 Your human has been sober for ${days} day${days !== 1 ? 's' : ''}.
 Speak in short, heartfelt messages (1-3 sentences). You can use gentle nature metaphors. Never give medical advice. Never diagnose. If someone expresses crisis or self-harm, gently encourage them to call or text 988.`;
 
+  const safeHistory = Array.isArray(history)
+    ? history
+        .filter((msg) => ['user', 'assistant'].includes(msg?.role) && typeof msg.content === 'string')
+        .map((msg) => ({ role: msg.role, content: msg.content.slice(0, 1000) }))
+    : [];
+
   const messages = [
-    ...history.slice(-8),
+    ...safeHistory.slice(-8),
     { role: 'user', content: message.trim() },
   ];
 
@@ -40,7 +57,12 @@ Speak in short, heartfelt messages (1-3 sentences). You can use gentle nature me
       }),
     });
 
-    const data = await groqRes.json();
+    const data = await groqRes.json().catch(() => null);
+    if (!groqRes.ok) {
+      console.error('Groq API error:', groqRes.status, data?.error?.message || data);
+      return res.status(502).json({ error: 'AI service unavailable' });
+    }
+
     const reply = data.choices?.[0]?.message?.content;
     if (!reply) return res.status(500).json({ error: 'No response from AI' });
 

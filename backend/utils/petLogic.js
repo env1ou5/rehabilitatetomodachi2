@@ -7,10 +7,12 @@ function clamp(n, min = 0, max = 100) {
 }
 
 /**
- * Apply time-based decay to a pet's stats. Mutates and returns a new pet object.
+ * Apply time-based decay to a pet's stats.
  * Should be called whenever we read or write the pet.
  */
 async function applyDecay(db, pet) {
+  if (!pet) return null;
+
   const now = new Date();
   const last = new Date(pet.last_decayed_at);
   const hoursElapsed = (now - last) / (1000 * 60 * 60);
@@ -37,9 +39,9 @@ async function applyDecay(db, pet) {
 async function applyRewards(db, petId, rewards) {
   const result = await db.query(
     `UPDATE pets
-     SET health = LEAST(100, health + $1),
-         happiness = LEAST(100, happiness + $2),
-         energy = LEAST(100, energy + $3)
+     SET health = GREATEST(0, LEAST(100, health + $1)),
+         happiness = GREATEST(0, LEAST(100, happiness + $2)),
+         energy = GREATEST(0, LEAST(100, energy + $3))
      WHERE id = $4
      RETURNING *`,
     [rewards.health || 0, rewards.happiness || 0, rewards.energy || 0, petId]
@@ -51,6 +53,8 @@ async function applyRewards(db, petId, rewards) {
  * Derive a mood string from stats. Used by the frontend to pick a sprite.
  */
 function deriveMood(pet) {
+  if (!pet) return 'okay';
+
   const avg = (pet.health + pet.happiness + pet.energy) / 3;
   if (avg >= 80) return 'thriving';
   if (avg >= 60) return 'content';
@@ -63,6 +67,8 @@ function deriveMood(pet) {
  * Compute days since sobriety_start (inclusive of today).
  */
 function sobrietyDays(pet) {
+  if (!pet) return 0;
+
   const start = new Date(pet.sobriety_start);
   const today = new Date();
   start.setHours(0, 0, 0, 0);

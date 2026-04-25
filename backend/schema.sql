@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS quest_completions (
   UNIQUE (user_id, quest_id, completed_on)
 );
 
+ALTER TABLE quest_completions
+  ADD COLUMN IF NOT EXISTS health_reward_applied INTEGER,
+  ADD COLUMN IF NOT EXISTS happiness_reward_applied INTEGER,
+  ADD COLUMN IF NOT EXISTS energy_reward_applied INTEGER;
+
 CREATE INDEX IF NOT EXISTS idx_quest_completions_user_date
   ON quest_completions (user_id, completed_on);
 

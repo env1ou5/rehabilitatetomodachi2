@@ -5,6 +5,21 @@ const { applyDecay, applyRewards, deriveMood, sobrietyDays } = require('../utils
 
 const router = express.Router();
 
+function actualReward(current, reward) {
+  return Math.max(0, Math.min(100, current + reward)) - current;
+}
+
+async function getOrCreatePet(client, userId) {
+  let result = await client.query('SELECT * FROM pets WHERE user_id = $1', [userId]);
+  if (result.rows.length === 0) {
+    result = await client.query(
+      'INSERT INTO pets (user_id) VALUES ($1) RETURNING *',
+      [userId]
+    );
+  }
+  return result.rows[0];
+}
+
 // GET /quests — all active quests with today's completion status
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -34,8 +49,9 @@ router.post('/:id/complete', requireAuth, async (req, res) => {
   const questId = parseInt(req.params.id, 10);
   if (Number.isNaN(questId)) return res.status(400).json({ error: 'invalid quest id' });
 
-  const client = await db.getClient();
+  let client;
   try {
+    client = await db.getClient();
     await client.query('BEGIN');
 
     const questResult = await client.query(
@@ -58,16 +74,26 @@ router.post('/:id/complete', requireAuth, async (req, res) => {
     );
     const wasNew = insert.rows.length > 0;
 
-    let petResult = await client.query('SELECT * FROM pets WHERE user_id = $1', [req.userId]);
-    let pet = petResult.rows[0];
+    let pet = await getOrCreatePet(client, req.userId);
     pet = await applyDecay(client, pet);
 
     if (wasNew) {
-      pet = await applyRewards(client, pet.id, {
-        health: quest.health_reward,
-        happiness: quest.happiness_reward,
-        energy: quest.energy_reward,
-      });
+      const rewards = {
+        health: actualReward(pet.health, quest.health_reward),
+        happiness: actualReward(pet.happiness, quest.happiness_reward),
+        energy: actualReward(pet.energy, quest.energy_reward),
+      };
+
+      await client.query(
+        `UPDATE quest_completions
+         SET health_reward_applied = $1,
+             happiness_reward_applied = $2,
+             energy_reward_applied = $3
+         WHERE id = $4`,
+        [rewards.health, rewards.happiness, rewards.energy, insert.rows[0].id]
+      );
+
+      pet = await applyRewards(client, pet.id, rewards);
     }
 
     await client.query('COMMIT');
@@ -76,11 +102,11 @@ router.post('/:id/complete', requireAuth, async (req, res) => {
       already_completed: !wasNew,
     });
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('complete quest error:', err);
     return res.status(500).json({ error: 'Failed to complete quest' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
@@ -89,8 +115,9 @@ router.delete('/:id/complete', requireAuth, async (req, res) => {
   const questId = parseInt(req.params.id, 10);
   if (Number.isNaN(questId)) return res.status(400).json({ error: 'invalid quest id' });
 
-  const client = await db.getClient();
+  let client;
   try {
+    client = await db.getClient();
     await client.query('BEGIN');
     const questResult = await client.query('SELECT * FROM quests WHERE id = $1', [questId]);
     const quest = questResult.rows[0];
@@ -102,20 +129,24 @@ router.delete('/:id/complete', requireAuth, async (req, res) => {
     const del = await client.query(
       `DELETE FROM quest_completions
        WHERE user_id = $1 AND quest_id = $2 AND completed_on = CURRENT_DATE
-       RETURNING id`,
+       RETURNING id, health_reward_applied, happiness_reward_applied, energy_reward_applied`,
       [req.userId, questId]
     );
-    const wasRemoved = del.rows.length > 0;
+    const completion = del.rows[0];
 
-    let petResult = await client.query('SELECT * FROM pets WHERE user_id = $1', [req.userId]);
-    let pet = petResult.rows[0];
+    let pet = await getOrCreatePet(client, req.userId);
 
-    if (wasRemoved) {
-      // Reverse the rewards.
+    if (completion) {
+      const rewardsToReverse = {
+        health: completion.health_reward_applied ?? quest.health_reward,
+        happiness: completion.happiness_reward_applied ?? quest.happiness_reward,
+        energy: completion.energy_reward_applied ?? quest.energy_reward,
+      };
+
       pet = await applyRewards(client, pet.id, {
-        health: -quest.health_reward,
-        happiness: -quest.happiness_reward,
-        energy: -quest.energy_reward,
+        health: -rewardsToReverse.health,
+        happiness: -rewardsToReverse.happiness,
+        energy: -rewardsToReverse.energy,
       });
     }
 
@@ -124,11 +155,11 @@ router.delete('/:id/complete', requireAuth, async (req, res) => {
       pet: { ...pet, mood: deriveMood(pet), sobriety_days: sobrietyDays(pet) },
     });
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('uncomplete quest error:', err);
     return res.status(500).json({ error: 'Failed to undo quest' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 

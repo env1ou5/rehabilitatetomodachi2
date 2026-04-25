@@ -34,12 +34,14 @@ export default function Dashboard({ onLogout }) {
   useEffect(() => { refresh(); }, []);
 
   const handleQuestToggle = async (quest) => {
+    const nextCompleted = !quest.completed_today;
+
     try {
       const result = quest.completed_today
         ? await api.uncompleteQuest(quest.id)
         : await api.completeQuest(quest.id);
       setPet(result.pet);
-      setQuests((qs) => qs.map((q) => q.id === quest.id ? { ...q, completed_today: !q.completed_today } : q));
+      setQuests((qs) => qs.map((q) => q.id === quest.id ? { ...q, completed_today: nextCompleted } : q));
     } catch (err) {
       setError(err.message);
     }

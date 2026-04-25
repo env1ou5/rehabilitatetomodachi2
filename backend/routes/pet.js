@@ -16,6 +16,17 @@ async function getOrCreatePet(userId) {
   return result.rows[0];
 }
 
+async function getOrCreatePetWithClient(client, userId) {
+  let result = await client.query('SELECT * FROM pets WHERE user_id = $1', [userId]);
+  if (result.rows.length === 0) {
+    result = await client.query(
+      'INSERT INTO pets (user_id) VALUES ($1) RETURNING *',
+      [userId]
+    );
+  }
+  return result.rows[0];
+}
+
 // GET /pet — current state, with decay applied
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -40,10 +51,13 @@ router.patch('/', requireAuth, async (req, res) => {
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return res.status(400).json({ error: 'name required' });
   }
+  const cleanName = name.trim().slice(0, 50);
+
   try {
+    await getOrCreatePet(req.userId);
     const result = await db.query(
       `UPDATE pets SET name = $1 WHERE user_id = $2 RETURNING *`,
-      [name.trim().slice(0, 50), req.userId]
+      [cleanName, req.userId]
     );
     const pet = result.rows[0];
     return res.json({
@@ -59,12 +73,15 @@ router.patch('/', requireAuth, async (req, res) => {
 // IMPORTANT: this does NOT damage the pet's stats. Recovery is not punitive.
 router.post('/hard-day', requireAuth, async (req, res) => {
   const { note } = req.body || {};
-  const client = await db.getClient();
+  const cleanNote = typeof note === 'string' ? note.trim().slice(0, 1000) : null;
+  let client;
   try {
+    client = await db.getClient();
     await client.query('BEGIN');
+    await getOrCreatePetWithClient(client, req.userId);
     await client.query(
       `INSERT INTO hard_days (user_id, note) VALUES ($1, $2)`,
-      [req.userId, note?.slice(0, 1000) || null]
+      [req.userId, cleanNote || null]
     );
     // Reset sobriety_start to today. No stat penalty.
     const result = await client.query(
@@ -78,11 +95,11 @@ router.post('/hard-day', requireAuth, async (req, res) => {
       message: "It's okay. Today is day one again — and that takes courage.",
     });
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('hard-day error:', err);
     return res.status(500).json({ error: 'Failed to log hard day' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 

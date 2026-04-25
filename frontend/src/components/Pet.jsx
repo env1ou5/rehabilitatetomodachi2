@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import SproutChat from './SproutChat.jsx';
 
 /**
@@ -9,11 +9,26 @@ export default function Pet({ pet, onRename }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(pet.name);
   const [chatOpen, setChatOpen] = useState(false);
+  const submittedRenameRef = useRef(false);
+
+  useEffect(() => {
+    if (!editing) setName(pet.name);
+  }, [editing, pet.name]);
 
   const submitRename = (e) => {
     e.preventDefault();
-    if (name.trim() && name.trim() !== pet.name) onRename(name.trim());
+    if (submittedRenameRef.current) return;
+
+    submittedRenameRef.current = true;
+    const cleanName = name.trim();
+    if (cleanName && cleanName !== pet.name) onRename(cleanName);
     setEditing(false);
+  };
+
+  const startEditing = () => {
+    submittedRenameRef.current = false;
+    setName(pet.name);
+    setEditing(true);
   };
 
   return (
@@ -76,7 +91,7 @@ export default function Pet({ pet, onRename }) {
               {pet.name}
             </h2>
             <button
-              onClick={() => { setName(pet.name); setEditing(true); }}
+              onClick={startEditing}
               className="text-ink/40 hover:text-ink/80 text-sm"
               title="Rename"
               aria-label="Rename pet"
