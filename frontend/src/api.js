@@ -40,6 +40,7 @@ export const api = {
 
   getPet:        ()      => request('/pet'),
   renamePet:     (name)  => request('/pet', { method: 'PATCH', body: { name } }),
+  updatePet:      (patch) => request('/pet', { method: 'PATCH', body: patch }),
   logHardDay:    (note)  => request('/pet/hard-day', { method: 'POST', body: { note } }),
 
   getQuests:        ()    => request('/quests'),

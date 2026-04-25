@@ -5,6 +5,14 @@ const { applyDecay, deriveMood, sobrietyDays } = require('../utils/petLogic');
 
 const router = express.Router();
 
+const OPTIONS = {
+  species: ['sprout', 'cactus', 'fern', 'flower'],
+  color_palette: ['moss', 'sunset', 'ocean', 'lavender'],
+  accessory: ['none', 'bow', 'scarf', 'glasses', 'star'],
+  recovery_focus: ['general', 'alcohol', 'opioids', 'nicotine', 'stimulants', 'cannabis', 'gambling', 'digital', 'food'],
+  support_style: ['self_guided', 'group', 'therapy', 'outpatient', 'inpatient'],
+};
+
 async function getOrCreatePet(userId) {
   let result = await db.query('SELECT * FROM pets WHERE user_id = $1', [userId]);
   if (result.rows.length === 0) {
@@ -47,17 +55,39 @@ router.get('/', requireAuth, async (req, res) => {
 
 // PATCH /pet — rename
 router.patch('/', requireAuth, async (req, res) => {
-  const { name } = req.body || {};
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
-    return res.status(400).json({ error: 'name required' });
+  const body = req.body || {};
+  const updates = [];
+  const values = [];
+
+  if (Object.prototype.hasOwnProperty.call(body, 'name')) {
+    if (!body.name || typeof body.name !== 'string' || body.name.trim().length === 0) {
+      return res.status(400).json({ error: 'name required' });
+    }
+    values.push(body.name.trim().slice(0, 50));
+    updates.push(`name = $${values.length}`);
   }
-  const cleanName = name.trim().slice(0, 50);
+
+  for (const field of ['species', 'color_palette', 'accessory', 'recovery_focus', 'support_style']) {
+    if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
+
+    const value = typeof body[field] === 'string' ? body[field] : '';
+    if (!OPTIONS[field].includes(value)) {
+      return res.status(400).json({ error: `invalid ${field}` });
+    }
+    values.push(value);
+    updates.push(`${field} = $${values.length}`);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: 'No pet updates provided' });
+  }
 
   try {
     await getOrCreatePet(req.userId);
+    values.push(req.userId);
     const result = await db.query(
-      `UPDATE pets SET name = $1 WHERE user_id = $2 RETURNING *`,
-      [cleanName, req.userId]
+      `UPDATE pets SET ${updates.join(', ')} WHERE user_id = $${values.length} RETURNING *`,
+      values
     );
     const pet = result.rows[0];
     return res.json({

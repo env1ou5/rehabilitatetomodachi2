@@ -69,3 +69,50 @@
   font-size: 22px;
   line-height: 1;
 }
+
+.chat-bubble-panel {
+  position: fixed;
+  isolation: isolate;
+}
+
+.chat-bubble-panel::after {
+  content: '';
+  position: absolute;
+  left: 44px;
+  bottom: -16px;
+  width: 28px;
+  height: 28px;
+  background: #FBF7EF;
+  border-right: 2px solid #2A2520;
+  border-bottom: 2px solid #2A2520;
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+.sprout-mouth-talk {
+  animation: sprout-mouth-talk 0.36s ease-in-out infinite alternate;
+  transform-origin: 80px 72px;
+}
+
+.sprout-talk-sway {
+  animation: sprout-talk-sway 0.9s ease-in-out infinite alternate;
+  transform-origin: 80px 180px;
+}
+
+@keyframes sprout-mouth-talk {
+  from {
+    transform: scaleY(0.45) scaleX(1.15);
+  }
+  to {
+    transform: scaleY(1.35) scaleX(0.82);
+  }
+}
+
+@keyframes sprout-talk-sway {
+  from {
+    transform: translateX(-4px) rotate(-3deg);
+  }
+  to {
+    transform: translateX(4px) rotate(3deg);
+  }
+}

@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS pets (
   user_id         INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   name            VARCHAR(50) NOT NULL DEFAULT 'Buddy',
   species         VARCHAR(20) NOT NULL DEFAULT 'sprout',
+  color_palette   VARCHAR(20) NOT NULL DEFAULT 'moss',
+  accessory       VARCHAR(20) NOT NULL DEFAULT 'none',
+  recovery_focus  VARCHAR(30) NOT NULL DEFAULT 'general',
+  support_style   VARCHAR(30) NOT NULL DEFAULT 'self_guided',
   health          INTEGER NOT NULL DEFAULT 80 CHECK (health BETWEEN 0 AND 100),
   happiness       INTEGER NOT NULL DEFAULT 80 CHECK (happiness BETWEEN 0 AND 100),
   energy          INTEGER NOT NULL DEFAULT 80 CHECK (energy BETWEEN 0 AND 100),
@@ -24,6 +28,12 @@ CREATE TABLE IF NOT EXISTS pets (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE pets
+  ADD COLUMN IF NOT EXISTS color_palette VARCHAR(20) NOT NULL DEFAULT 'moss',
+  ADD COLUMN IF NOT EXISTS accessory VARCHAR(20) NOT NULL DEFAULT 'none',
+  ADD COLUMN IF NOT EXISTS recovery_focus VARCHAR(30) NOT NULL DEFAULT 'general',
+  ADD COLUMN IF NOT EXISTS support_style VARCHAR(30) NOT NULL DEFAULT 'self_guided';
+
 -- Catalog of available quests. Seeded with defaults.
 CREATE TABLE IF NOT EXISTS quests (
   id              SERIAL PRIMARY KEY,
@@ -31,11 +41,19 @@ CREATE TABLE IF NOT EXISTS quests (
   title           VARCHAR(120) NOT NULL,
   description     TEXT NOT NULL,
   category        VARCHAR(30) NOT NULL,
+  focus_tags      TEXT[] NOT NULL DEFAULT '{}',
+  support_tags    TEXT[] NOT NULL DEFAULT '{}',
+  is_core         BOOLEAN NOT NULL DEFAULT FALSE,
   health_reward   INTEGER NOT NULL DEFAULT 0,
   happiness_reward INTEGER NOT NULL DEFAULT 0,
   energy_reward   INTEGER NOT NULL DEFAULT 0,
   is_active       BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+ALTER TABLE quests
+  ADD COLUMN IF NOT EXISTS focus_tags TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS support_tags TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS is_core BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- Track each quest completion. Unique per user/quest/day so a quest
 -- can only be completed once per calendar day (UTC).

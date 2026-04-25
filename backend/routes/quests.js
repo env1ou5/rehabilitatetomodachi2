@@ -23,8 +23,15 @@ async function getOrCreatePet(client, userId) {
 // GET /quests — all active quests with today's completion status
 router.get('/', requireAuth, async (req, res) => {
   try {
+    const petResult = await db.query(
+      `SELECT recovery_focus, support_style FROM pets WHERE user_id = $1`,
+      [req.userId]
+    );
+    const pet = petResult.rows[0] || { recovery_focus: 'general', support_style: 'self_guided' };
+
     const result = await db.query(
       `SELECT q.id, q.slug, q.title, q.description, q.category,
+              q.focus_tags, q.support_tags, q.is_core,
               q.health_reward, q.happiness_reward, q.energy_reward,
               EXISTS (
                 SELECT 1 FROM quest_completions qc
@@ -34,10 +41,21 @@ router.get('/', requireAuth, async (req, res) => {
               ) AS completed_today
        FROM quests q
        WHERE q.is_active = TRUE
-       ORDER BY q.id ASC`,
-      [req.userId]
+         AND (
+           q.is_core = TRUE
+           OR $2 = ANY(q.focus_tags)
+           OR $3 = ANY(q.support_tags)
+         )
+       ORDER BY q.is_core DESC, q.category ASC, q.id ASC`,
+      [req.userId, pet.recovery_focus, pet.support_style]
     );
-    return res.json({ quests: result.rows });
+    return res.json({
+      profile: {
+        recovery_focus: pet.recovery_focus,
+        support_style: pet.support_style,
+      },
+      quests: result.rows,
+    });
   } catch (err) {
     console.error('GET /quests error:', err);
     return res.status(500).json({ error: 'Failed to load quests' });

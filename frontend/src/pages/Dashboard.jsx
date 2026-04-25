@@ -58,10 +58,14 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
-  const handleRename = async (newName) => {
+  const handlePetUpdate = async (patch) => {
     try {
-      const result = await api.renamePet(newName);
+      const result = await api.updatePet(patch);
       setPet(result.pet);
+      if (patch.recovery_focus || patch.support_style) {
+        const questsRes = await api.getQuests();
+        setQuests(questsRes.quests);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -98,7 +102,7 @@ export default function Dashboard({ onLogout }) {
 
       {/* Pet stage */}
       <div className="card p-6 mb-6 animate-fade-in">
-        <Pet pet={pet} onRename={handleRename} />
+        <Pet pet={pet} onUpdate={handlePetUpdate} />
         <div className="mt-6">
           <Stats pet={pet} />
         </div>

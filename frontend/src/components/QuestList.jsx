@@ -3,6 +3,7 @@ const CATEGORY_BADGES = {
   reflection: { label: 'reflect', color: 'bg-clay-400' },
   mind:       { label: 'mind',    color: 'bg-moss-400' },
   body:       { label: 'body',    color: 'bg-moss-500 text-cream-50' },
+  planning:   { label: 'plan',    color: 'bg-cream-200' },
 };
 
 export default function QuestList({ quests, onToggle }) {
@@ -45,11 +46,31 @@ export default function QuestList({ quests, onToggle }) {
                 {quest.description}
               </p>
               <RewardChips quest={quest} />
+              <QuestTags quest={quest} />
             </div>
           </li>
         );
       })}
     </ul>
+  );
+}
+
+function QuestTags({ quest }) {
+  const tags = [
+    ...(quest.focus_tags || []),
+    ...(quest.support_tags || []),
+  ].filter(Boolean);
+
+  if (quest.is_core || tags.length === 0) return null;
+
+  return (
+    <div className="flex gap-1.5 mt-2 flex-wrap">
+      {tags.map((tag) => (
+        <span key={tag} className="font-pixel text-xs uppercase text-ink/45 border border-ink/15 rounded px-1.5 py-0.5">
+          {tag.replace('_', ' ')}
+        </span>
+      ))}
+    </div>
   );
 }
 
