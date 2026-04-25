@@ -6,7 +6,15 @@ const CATEGORY_BADGES = {
   planning:   { label: 'plan',    color: 'bg-cream-200' },
 };
 
-export default function QuestList({ quests, onToggle }) {
+export default function QuestList({ quests, onToggle, loading = false }) {
+  if (loading) {
+    return (
+      <div className="p-4 bg-cream-100 border-2 border-dashed border-ink/30 rounded-lg">
+        <div className="font-pixel text-lg text-moss-600 animate-pulse">MAKING NEW DAILY QUESTS...</div>
+      </div>
+    );
+  }
+
   if (quests.length === 0) {
     return <p className="text-sm text-ink/50 italic">No quests yet.</p>;
   }

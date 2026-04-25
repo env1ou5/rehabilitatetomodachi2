@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS pets (
   color_palette   VARCHAR(20) NOT NULL DEFAULT 'moss',
   accessory       VARCHAR(20) NOT NULL DEFAULT 'none',
   recovery_focus  VARCHAR(30) NOT NULL DEFAULT 'general',
+  recovery_goal   TEXT NOT NULL DEFAULT '',
   support_style   VARCHAR(30) NOT NULL DEFAULT 'self_guided',
   health          INTEGER NOT NULL DEFAULT 80 CHECK (health BETWEEN 0 AND 100),
   happiness       INTEGER NOT NULL DEFAULT 80 CHECK (happiness BETWEEN 0 AND 100),
@@ -32,11 +33,13 @@ ALTER TABLE pets
   ADD COLUMN IF NOT EXISTS color_palette VARCHAR(20) NOT NULL DEFAULT 'moss',
   ADD COLUMN IF NOT EXISTS accessory VARCHAR(20) NOT NULL DEFAULT 'none',
   ADD COLUMN IF NOT EXISTS recovery_focus VARCHAR(30) NOT NULL DEFAULT 'general',
+  ADD COLUMN IF NOT EXISTS recovery_goal TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS support_style VARCHAR(30) NOT NULL DEFAULT 'self_guided';
 
 -- Catalog of available quests. Seeded with defaults.
 CREATE TABLE IF NOT EXISTS quests (
   id              SERIAL PRIMARY KEY,
+  user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
   slug            VARCHAR(50) UNIQUE NOT NULL,
   title           VARCHAR(120) NOT NULL,
   description     TEXT NOT NULL,
@@ -53,7 +56,12 @@ CREATE TABLE IF NOT EXISTS quests (
 ALTER TABLE quests
   ADD COLUMN IF NOT EXISTS focus_tags TEXT[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS support_tags TEXT[] NOT NULL DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS is_core BOOLEAN NOT NULL DEFAULT FALSE;
+  ADD COLUMN IF NOT EXISTS is_core BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS generated_from TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_quests_user_active
+  ON quests (user_id, is_active);
 
 -- Track each quest completion. Unique per user/quest/day so a quest
 -- can only be completed once per calendar day (UTC).

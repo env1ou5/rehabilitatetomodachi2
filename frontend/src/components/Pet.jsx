@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import SproutChat from './SproutChat.jsx';
 
 const PET_SPECIES = {
-  sprout: { label: 'Sprout' },
-  cactus: { label: 'Cactus' },
-  fern: { label: 'Fern' },
-  flower: { label: 'Flower' },
+  sprout: { label: 'Sprout', icon: '🌱' },
+  cactus: { label: 'Cactus', icon: '🌵' },
+  fern: { label: 'Fern', icon: '🌿' },
+  flower: { label: 'Flower', icon: '✿' },
 };
 
 const PALETTES = {
   moss: { label: 'Moss', stem: '#5C8268', leaf: '#7FA088', roughStem: '#7E6F4F', roughLeaf: '#A89A6E', sadStem: '#8C9A6B', sadLeaf: '#A2B384', pot: '#D88A7A', potRim: '#C56B5A' },
-  sunset: { label: 'Sunset', stem: '#B26A48', leaf: '#F4A87A', roughStem: '#8B654E', roughLeaf: '#D8A078', sadStem: '#C98567', sadLeaf: '#E8B08B', pot: '#7FA088', potRim: '#5C8268' },
-  ocean: { label: 'Ocean', stem: '#437C8C', leaf: '#6AA6B8', roughStem: '#687580', roughLeaf: '#94A6AE', sadStem: '#5F8C98', sadLeaf: '#87B5C0', pot: '#D88A7A', potRim: '#C56B5A' },
-  lavender: { label: 'Lavender', stem: '#6F668F', leaf: '#9C8CC2', roughStem: '#746B7A', roughLeaf: '#A69BB3', sadStem: '#81779E', sadLeaf: '#AEA1CF', pot: '#F4A87A', potRim: '#EC8956' },
+  sunset: { label: 'Sunset', stem: '#B96E4C', leaf: '#F2A36F', roughStem: '#8C674E', roughLeaf: '#CFA07A', sadStem: '#C98567', sadLeaf: '#E6B08B', pot: '#5C8268', potRim: '#456350' },
+  ocean: { label: 'Ocean', stem: '#437C8C', leaf: '#76AEB8', roughStem: '#657783', roughLeaf: '#94AAB0', sadStem: '#5F8C98', sadLeaf: '#8ABAC3', pot: '#D88A7A', potRim: '#C56B5A' },
+  lavender: { label: 'Lavender', stem: '#6F668F', leaf: '#9A8BC0', roughStem: '#746B7A', roughLeaf: '#A69CB3', sadStem: '#81779E', sadLeaf: '#AEA1CF', pot: '#F4A87A', potRim: '#EC8956' },
 };
 
 const ACCESSORIES = {
@@ -23,30 +23,6 @@ const ACCESSORIES = {
   star: 'Star',
 };
 
-const RECOVERY_FOCUS = {
-  general: 'General',
-  alcohol: 'Alcohol',
-  opioids: 'Opioids',
-  nicotine: 'Nicotine',
-  stimulants: 'Stimulants',
-  cannabis: 'Cannabis',
-  gambling: 'Gambling',
-  digital: 'Digital habits',
-  food: 'Food/body',
-};
-
-const SUPPORT_STYLE = {
-  self_guided: 'Self-guided',
-  group: 'Group',
-  therapy: 'Therapy',
-  outpatient: 'Outpatient',
-  inpatient: 'Inpatient',
-};
-
-/**
- * The pet visually responds to mood and user customization.
- * Mood states (from petLogic.js): thriving | content | okay | sad | rough
- */
 export default function Pet({ pet, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(pet.name);
@@ -86,14 +62,14 @@ export default function Pet({ pet, onUpdate }) {
   return (
     <div className="flex flex-col items-center">
       <div className="relative w-full h-56 flex items-end justify-center bg-gradient-to-b from-cream-100 to-cream-200 border-2 border-ink rounded-xl overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-3 left-6 w-2 h-2 bg-peach-400 rounded-full opacity-60" />
-          <div className="absolute top-8 right-12 w-1.5 h-1.5 bg-moss-400 rounded-full opacity-50" />
-          <div className="absolute top-14 left-16 w-1 h-1 bg-clay-400 rounded-full opacity-40" />
-          <div className="absolute top-6 right-1/3 w-2 h-2 bg-peach-400 rounded-full opacity-30" />
+        <div className="absolute inset-0 pointer-events-none opacity-70">
+          <div className="absolute top-3 left-6 w-2 h-2 bg-peach-400 rounded-full" />
+          <div className="absolute top-8 right-12 w-1.5 h-1.5 bg-moss-400 rounded-full" />
+          <div className="absolute top-14 left-16 w-1 h-1 bg-clay-400 rounded-full" />
+          <div className="absolute top-6 right-1/3 w-2 h-2 bg-peach-400 rounded-full opacity-50" />
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-moss-400/30 border-t-2 border-dashed border-ink/20" />
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-moss-400/25 border-t-2 border-dashed border-ink/20" />
 
         <button
           onClick={() => setChatOpen(true)}
@@ -126,9 +102,7 @@ export default function Pet({ pet, onUpdate }) {
           </form>
         ) : (
           <>
-            <h2 className="font-display font-black text-3xl text-moss-700">
-              {pet.name}
-            </h2>
+            <h2 className="font-display font-black text-3xl text-moss-700">{pet.name}</h2>
             <button
               onClick={startEditing}
               className="text-ink/40 hover:text-ink/80 text-sm"
@@ -140,6 +114,7 @@ export default function Pet({ pet, onUpdate }) {
           </>
         )}
       </div>
+
       <div className="font-pixel text-xs text-ink/40 uppercase tracking-widest">
         a small {PET_SPECIES[pet.species]?.label?.toLowerCase() || 'sprout'}
       </div>
@@ -156,42 +131,79 @@ function PetCustomizer({ pet, savingField, onChange }) {
     <div className="w-full mt-5 pt-5 border-t-2 border-dashed border-ink/15 space-y-4">
       <div>
         <div className="pixel-heading text-sm mb-2">Pet style</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Picker label="Species" field="species" value={pet.species} options={PET_SPECIES} savingField={savingField} onChange={onChange} />
-          <Picker label="Palette" field="color_palette" value={pet.color_palette} options={PALETTES} savingField={savingField} onChange={onChange} />
-          <Picker label="Accessory" field="accessory" value={pet.accessory} options={ACCESSORIES} savingField={savingField} onChange={onChange} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Object.entries(PET_SPECIES).map(([value, option]) => (
+            <ChoiceButton
+              key={value}
+              active={pet.species === value}
+              disabled={savingField === 'species'}
+              onClick={() => onChange('species', value)}
+            >
+              <span className="text-lg" aria-hidden>{option.icon}</span>
+              <span>{option.label}</span>
+            </ChoiceButton>
+          ))}
         </div>
       </div>
 
       <div>
-        <div className="pixel-heading text-sm mb-2">Recovery profile</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Picker label="Focus" field="recovery_focus" value={pet.recovery_focus} options={RECOVERY_FOCUS} savingField={savingField} onChange={onChange} />
-          <Picker label="Support" field="support_style" value={pet.support_style} options={SUPPORT_STYLE} savingField={savingField} onChange={onChange} />
+        <div className="pixel-heading text-sm mb-2">Colors</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Object.entries(PALETTES).map(([value, palette]) => (
+            <ChoiceButton
+              key={value}
+              active={pet.color_palette === value}
+              disabled={savingField === 'color_palette'}
+              onClick={() => onChange('color_palette', value)}
+            >
+              <span className="inline-flex -space-x-1" aria-hidden>
+                <span className="w-4 h-4 rounded-full border border-ink" style={{ backgroundColor: palette.leaf }} />
+                <span className="w-4 h-4 rounded-full border border-ink" style={{ backgroundColor: palette.pot }} />
+              </span>
+              <span>{palette.label}</span>
+            </ChoiceButton>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="pixel-heading text-sm mb-2">Accessory</div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {Object.entries(ACCESSORIES).map(([value, label]) => (
+            <ChoiceButton
+              key={value}
+              active={pet.accessory === value}
+              disabled={savingField === 'accessory'}
+              onClick={() => onChange('accessory', value)}
+            >
+              <AccessoryIcon value={value} />
+              <span>{label}</span>
+            </ChoiceButton>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function Picker({ label, field, value, options, savingField, onChange }) {
+function ChoiceButton({ active, disabled, onClick, children }) {
   return (
-    <label className="block">
-      <span className="label">{label}</span>
-      <select
-        className="input py-1.5 text-sm"
-        value={value || Object.keys(options)[0]}
-        disabled={savingField === field}
-        onChange={(e) => onChange(field, e.target.value)}
-      >
-        {Object.entries(options).map(([key, option]) => (
-          <option key={key} value={key}>
-            {typeof option === 'string' ? option : option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`min-h-12 px-2 py-2 border-2 border-ink rounded-lg font-display font-bold text-sm flex items-center justify-center gap-2 transition ${
+        active ? 'bg-moss-500 text-cream-50 shadow-chunky-sm' : 'bg-cream-50 hover:bg-cream-100 text-ink/75'
+      }`}
+    >
+      {children}
+    </button>
   );
+}
+
+function AccessoryIcon({ value }) {
+  const icons = { none: '·', bow: '⋈', scarf: '~', glasses: 'oo', star: '★' };
+  return <span className="font-pixel text-lg leading-none" aria-hidden>{icons[value]}</span>;
 }
 
 function PetSprite({ pet, talking = false }) {
@@ -209,6 +221,16 @@ function PetSprite({ pet, talking = false }) {
   const stemColor = mood === 'rough' ? palette.roughStem : mood === 'sad' ? palette.sadStem : palette.stem;
   const leafColor = mood === 'rough' ? palette.roughLeaf : mood === 'sad' ? palette.sadLeaf : palette.leaf;
 
+  if (species === 'cactus') {
+    return <CactusSprite pet={pet} palette={palette} config={c} talking={talking} />;
+  }
+  if (species === 'flower') {
+    return <FlowerSprite pet={pet} palette={palette} config={c} talking={talking} />;
+  }
+  if (species === 'fern') {
+    return <FernSprite pet={pet} palette={palette} config={c} talking={talking} />;
+  }
+
   return (
     <svg
       viewBox="0 0 160 200"
@@ -218,43 +240,36 @@ function PetSprite({ pet, talking = false }) {
       <g>
         <path d="M40 168 L120 168 L114 196 L46 196 Z" fill={palette.pot} stroke="#2A2520" strokeWidth="3" strokeLinejoin="round" />
         <rect x="36" y="160" width="88" height="12" rx="2" fill={palette.potRim} stroke="#2A2520" strokeWidth="3" />
-        <path d="M50 178 L110 178" stroke="#2A2520" strokeWidth="2" strokeDasharray="4 4" opacity="0.4" />
+        <path d="M50 178 L110 178" stroke="#2A2520" strokeWidth="2" strokeDasharray="4 4" opacity="0.35" />
       </g>
 
-      <path d="M80 168 Q78 130 80 100" stroke={stemColor} strokeWidth="6" strokeLinecap="round" fill="none" />
-      <SpeciesLeaves species={species} leafColor={leafColor} leafTilt={c.leafTilt} />
+      <path d="M80 168 Q78 132 80 100" stroke={stemColor} strokeWidth="6" strokeLinecap="round" fill="none" />
+      <SideLeaves species={species} leafColor={leafColor} leafTilt={c.leafTilt} />
 
       <g>
-        <circle cx="80" cy="80" r="32" fill={leafColor} stroke="#2A2520" strokeWidth="3" />
-        <ellipse cx="62" cy={c.eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.55" />
-        <ellipse cx="98" cy={c.eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.55" />
+        <circle cx="80" cy="80" r={species === 'cactus' ? 30 : 32} fill={leafColor} stroke="#2A2520" strokeWidth="3" />
+        {species === 'cactus' && <CactusMarks />}
+        <ellipse cx="62" cy={c.eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.5" />
+        <ellipse cx="98" cy={c.eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.5" />
         <circle cx="68" cy={c.eyeY} r="3.5" fill="#2A2520" />
         <circle cx="92" cy={c.eyeY} r="3.5" fill="#2A2520" />
         <circle cx="69" cy={c.eyeY - 1} r="1" fill="#FBF7EF" />
         <circle cx="93" cy={c.eyeY - 1} r="1" fill="#FBF7EF" />
         <Mouth mood={c.mouth} talking={talking} />
-        <SpeciesTop species={species} leafColor={leafColor} />
+        <TopDetail species={species} leafColor={leafColor} bloom={c.bloom} />
         <Accessory accessory={pet.accessory} />
       </g>
 
-      {(c.bloom || species === 'flower') && (
-        <g>
-          <circle cx="80" cy="22" r="5" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
-          <circle cx="80" cy="22" r="2" fill="#FBF7EF" />
-        </g>
-      )}
-
       {c.sparkles && (
         <g>
-          <Sparkle x={28} y={50} delay="0s" />
-          <Sparkle x={132} y={42} delay="0.4s" />
-          <Sparkle x={140} y={100} delay="0.8s" />
-          <Sparkle x={20} y={110} delay="1.2s" />
+          <Sparkle x={30} y={54} delay="0s" />
+          <Sparkle x={132} y={48} delay="0.4s" />
+          <Sparkle x={138} y={104} delay="0.8s" />
         </g>
       )}
 
       {mood === 'rough' && (
-        <g opacity="0.7">
+        <g opacity="0.65">
           <ellipse cx="42" cy="170" rx="5" ry="2.5" fill={leafColor} stroke="#2A2520" strokeWidth="1.5" transform="rotate(40 42 170)" />
         </g>
       )}
@@ -262,84 +277,173 @@ function PetSprite({ pet, talking = false }) {
   );
 }
 
+function CactusSprite({ pet, palette, config, talking }) {
+  const cactusColor = pet.mood === 'rough' ? palette.roughLeaf : pet.mood === 'sad' ? palette.sadLeaf : palette.leaf;
+
+  return (
+    <svg viewBox="0 0 160 200" className={`w-44 h-56 z-10 ${talking ? 'sprout-talk-sway' : config.anim}`} aria-label={`Pet appears ${pet.mood}`}>
+      <Pot palette={palette} />
+      <g>
+        <path d="M65 166 L65 75 Q65 48 80 48 Q95 48 95 75 L95 166 Z" fill={cactusColor} stroke="#2A2520" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M66 112 Q48 112 48 92 Q48 78 58 78 Q66 78 66 91" fill="none" stroke={cactusColor} strokeWidth="13" strokeLinecap="round" />
+        <path d="M94 124 Q116 124 116 100 Q116 84 105 84 Q94 84 94 99" fill="none" stroke={cactusColor} strokeWidth="13" strokeLinecap="round" />
+        <path d="M66 112 Q48 112 48 92 Q48 78 58 78 Q66 78 66 91" fill="none" stroke="#2A2520" strokeWidth="3" strokeLinecap="round" />
+        <path d="M94 124 Q116 124 116 100 Q116 84 105 84 Q94 84 94 99" fill="none" stroke="#2A2520" strokeWidth="3" strokeLinecap="round" />
+        <path d="M75 62 L75 154 M85 62 L85 154" stroke="#2A2520" strokeWidth="1.5" opacity="0.16" />
+        <g stroke="#2A2520" strokeWidth="1.5" strokeLinecap="round" opacity="0.42">
+          <path d="M72 72 L68 72 M88 86 L92 86 M72 108 L68 108 M88 132 L92 132 M56 92 L52 92 M108 102 L112 102" />
+        </g>
+        <Face eyeY={config.eyeY + 18} talking={talking} mouth={config.mouth} />
+        <Accessory accessory={pet.accessory} />
+      </g>
+      {config.sparkles && <Sparkle x={126} y={46} delay="0.2s" />}
+    </svg>
+  );
+}
+
+function FlowerSprite({ pet, palette, config, talking }) {
+  const stemColor = pet.mood === 'rough' ? palette.roughStem : pet.mood === 'sad' ? palette.sadStem : palette.stem;
+  const leafColor = pet.mood === 'rough' ? palette.roughLeaf : pet.mood === 'sad' ? palette.sadLeaf : palette.leaf;
+  const petalColor = pet.color_palette === 'ocean' ? '#8ABAC3' : pet.color_palette === 'lavender' ? '#AEA1CF' : '#F4A87A';
+
+  return (
+    <svg viewBox="0 0 160 200" className={`w-44 h-56 z-10 ${talking ? 'sprout-talk-sway' : config.anim}`} aria-label={`Pet appears ${pet.mood}`}>
+      <Pot palette={palette} />
+      <path d="M80 166 Q78 128 80 104" stroke={stemColor} strokeWidth="6" strokeLinecap="round" fill="none" />
+      <ellipse cx="63" cy="132" rx="15" ry="8" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(-24 63 132)" />
+      <ellipse cx="97" cy="128" rx="15" ry="8" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(24 97 128)" />
+      <g>
+        {[
+          [80, 43], [101, 57], [94, 82], [66, 82], [59, 57],
+        ].map(([cx, cy]) => (
+          <ellipse key={`${cx}-${cy}`} cx={cx} cy={cy} rx="17" ry="22" fill={petalColor} stroke="#2A2520" strokeWidth="3" />
+        ))}
+        <circle cx="80" cy="68" r="28" fill={leafColor} stroke="#2A2520" strokeWidth="3" />
+        <Face eyeY={config.eyeY + 2} talking={talking} mouth={config.mouth} />
+        <Accessory accessory={pet.accessory} />
+      </g>
+      {config.sparkles && <Sparkle x={124} y={40} delay="0.3s" />}
+    </svg>
+  );
+}
+
+function FernSprite({ pet, palette, config, talking }) {
+  const stemColor = pet.mood === 'rough' ? palette.roughStem : pet.mood === 'sad' ? palette.sadStem : palette.stem;
+  const leafColor = pet.mood === 'rough' ? palette.roughLeaf : pet.mood === 'sad' ? palette.sadLeaf : palette.leaf;
+
+  return (
+    <svg viewBox="0 0 160 200" className={`w-44 h-56 z-10 ${talking ? 'sprout-talk-sway' : config.anim}`} aria-label={`Pet appears ${pet.mood}`}>
+      <Pot palette={palette} />
+      <path d="M80 166 Q79 126 80 88" stroke={stemColor} strokeWidth="6" strokeLinecap="round" fill="none" />
+      {[76, 92, 108, 124, 140].map((y, i) => (
+        <g key={y}>
+          <ellipse cx={62 - i * 2} cy={y} rx="18" ry="6" fill={leafColor} stroke="#2A2520" strokeWidth="2.3" transform={`rotate(${-34 + i * 3} ${62 - i * 2} ${y})`} />
+          <ellipse cx={98 + i * 2} cy={y} rx="18" ry="6" fill={leafColor} stroke="#2A2520" strokeWidth="2.3" transform={`rotate(${34 - i * 3} ${98 + i * 2} ${y})`} />
+        </g>
+      ))}
+      <circle cx="80" cy="72" r="26" fill={leafColor} stroke="#2A2520" strokeWidth="3" />
+      <Face eyeY={config.eyeY} talking={talking} mouth={config.mouth} />
+      <Accessory accessory={pet.accessory} />
+      {config.sparkles && <Sparkle x={124} y={46} delay="0.1s" />}
+    </svg>
+  );
+}
+
+function Pot({ palette }) {
+  return (
+    <g>
+      <path d="M40 168 L120 168 L114 196 L46 196 Z" fill={palette.pot} stroke="#2A2520" strokeWidth="3" strokeLinejoin="round" />
+      <rect x="36" y="160" width="88" height="12" rx="2" fill={palette.potRim} stroke="#2A2520" strokeWidth="3" />
+      <path d="M50 178 L110 178" stroke="#2A2520" strokeWidth="2" strokeDasharray="4 4" opacity="0.35" />
+    </g>
+  );
+}
+
+function Face({ eyeY, talking, mouth }) {
+  return (
+    <>
+      <ellipse cx="62" cy={eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.5" />
+      <ellipse cx="98" cy={eyeY + 6} rx="5" ry="3" fill="#EC8956" opacity="0.5" />
+      <circle cx="68" cy={eyeY} r="3.5" fill="#2A2520" />
+      <circle cx="92" cy={eyeY} r="3.5" fill="#2A2520" />
+      <circle cx="69" cy={eyeY - 1} r="1" fill="#FBF7EF" />
+      <circle cx="93" cy={eyeY - 1} r="1" fill="#FBF7EF" />
+      <Mouth mood={mouth} talking={talking} />
+    </>
+  );
+}
+
 function Mouth({ mood, talking }) {
-  if (talking) {
-    return <ellipse cx="80" cy="72" rx="6" ry="3" fill="#2A2520" className="sprout-mouth-talk" />;
-  }
+  if (talking) return <ellipse cx="80" cy="72" rx="6" ry="3" fill="#2A2520" className="sprout-mouth-talk" />;
   if (mood === 'smile') return <path d="M72 70 Q80 78 88 70" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />;
   if (mood === 'flat') return <path d="M73 71 L87 71" stroke="#2A2520" strokeWidth="2.5" strokeLinecap="round" />;
   return <path d="M72 73 Q80 67 88 73" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />;
 }
 
-function SpeciesLeaves({ species, leafColor, leafTilt }) {
+function SideLeaves({ species, leafColor, leafTilt }) {
   if (species === 'cactus') {
     return (
       <>
-        <path d="M70 132 Q52 126 54 108" stroke={leafColor} strokeWidth="7" strokeLinecap="round" fill="none" />
-        <path d="M90 138 Q110 132 108 112" stroke={leafColor} strokeWidth="7" strokeLinecap="round" fill="none" />
+        <path d="M76 136 Q60 130 60 116" stroke={leafColor} strokeWidth="7" strokeLinecap="round" fill="none" />
+        <path d="M88 136 Q102 130 102 116" stroke={leafColor} strokeWidth="7" strokeLinecap="round" fill="none" />
       </>
     );
   }
 
-  if (species === 'fern') {
-    return (
-      <>
-        {[112, 124, 136].map((y, i) => (
-          <g key={y}>
-            <ellipse cx={62 - i * 2} cy={y} rx="12" ry="5" fill={leafColor} stroke="#2A2520" strokeWidth="2" transform={`rotate(${-28 + leafTilt} ${62 - i * 2} ${y})`} />
-            <ellipse cx={98 + i * 2} cy={y} rx="12" ry="5" fill={leafColor} stroke="#2A2520" strokeWidth="2" transform={`rotate(${28 - leafTilt} ${98 + i * 2} ${y})`} />
-          </g>
-        ))}
-      </>
-    );
-  }
-
+  const fern = species === 'fern';
   return (
     <>
       <g transform={`rotate(${-20 + leafTilt} 80 130)`}>
-        <ellipse cx="62" cy="128" rx="14" ry="8" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" />
-        <path d="M62 128 L70 130" stroke="#2A2520" strokeWidth="1.5" opacity="0.4" />
+        <ellipse cx="62" cy="128" rx={fern ? 18 : 14} ry={fern ? 6 : 8} fill={leafColor} stroke="#2A2520" strokeWidth="2.5" />
+        <path d="M62 128 L70 130" stroke="#2A2520" strokeWidth="1.5" opacity="0.35" />
       </g>
       <g transform={`rotate(${20 - leafTilt} 80 130)`}>
-        <ellipse cx="98" cy="128" rx="14" ry="8" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" />
-        <path d="M98 128 L90 130" stroke="#2A2520" strokeWidth="1.5" opacity="0.4" />
+        <ellipse cx="98" cy="128" rx={fern ? 18 : 14} ry={fern ? 6 : 8} fill={leafColor} stroke="#2A2520" strokeWidth="2.5" />
+        <path d="M98 128 L90 130" stroke="#2A2520" strokeWidth="1.5" opacity="0.35" />
       </g>
     </>
   );
 }
 
-function SpeciesTop({ species, leafColor }) {
-  if (species === 'cactus') {
-    return <path d="M70 50 L72 42 M78 48 L78 38 M88 50 L86 42" stroke="#2A2520" strokeWidth="2" strokeLinecap="round" opacity="0.55" />;
-  }
+function TopDetail({ species, leafColor, bloom }) {
+  if (species === 'cactus') return <path d="M70 50 L72 43 M80 48 L80 40 M90 50 L88 43" stroke="#2A2520" strokeWidth="2" strokeLinecap="round" opacity="0.45" />;
 
-  if (species === 'fern') {
+  if (species === 'flower') {
     return (
-      <>
-        <path d="M80 50 Q70 36 56 36" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <path d="M80 50 Q90 36 104 36" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <ellipse cx="56" cy="36" rx="8" ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2" transform="rotate(-12 56 36)" />
-        <ellipse cx="104" cy="36" rx="8" ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2" transform="rotate(12 104 36)" />
-      </>
+      <g>
+        <circle cx="80" cy="26" r="5" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
+        <circle cx="72" cy="28" r="5" fill="#F4A87A" stroke="#2A2520" strokeWidth="2" />
+        <circle cx="88" cy="28" r="5" fill="#F4A87A" stroke="#2A2520" strokeWidth="2" />
+        <circle cx="80" cy="26" r="2" fill="#FBF7EF" />
+      </g>
     );
   }
 
   return (
-    <>
+    <g>
       <path d="M80 48 Q76 36 70 32" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       <path d="M80 48 Q84 36 90 32" stroke="#2A2520" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <ellipse cx="68" cy="30" rx="6" ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(-30 68 30)" />
-      <ellipse cx="92" cy="30" rx="6" ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(30 92 30)" />
-    </>
+      <ellipse cx="68" cy="30" rx={species === 'fern' ? 9 : 6} ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(-30 68 30)" />
+      <ellipse cx="92" cy="30" rx={species === 'fern' ? 9 : 6} ry="3" fill={leafColor} stroke="#2A2520" strokeWidth="2.5" transform="rotate(30 92 30)" />
+      {bloom && <circle cx="80" cy="22" r="4.5" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />}
+    </g>
+  );
+}
+
+function CactusMarks() {
+  return (
+    <g stroke="#2A2520" strokeWidth="1.5" strokeLinecap="round" opacity="0.35">
+      <path d="M58 76 L54 76 M104 82 L108 82 M78 58 L78 54 M86 102 L86 106" />
+    </g>
   );
 }
 
 function Accessory({ accessory }) {
   if (accessory === 'bow') {
     return (
-      <g transform="translate(80 48)">
-        <path d="M0 0 L-14 -7 L-14 7 Z" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
-        <path d="M0 0 L14 -7 L14 7 Z" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
+      <g transform="translate(80 50)">
+        <path d="M0 0 L-12 -6 L-12 6 Z" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
+        <path d="M0 0 L12 -6 L12 6 Z" fill="#EC8956" stroke="#2A2520" strokeWidth="2" />
         <circle cx="0" cy="0" r="3" fill="#F4A87A" stroke="#2A2520" strokeWidth="2" />
       </g>
     );
@@ -348,8 +452,8 @@ function Accessory({ accessory }) {
   if (accessory === 'scarf') {
     return (
       <g>
-        <path d="M54 105 Q80 116 106 105" stroke="#EC8956" strokeWidth="8" strokeLinecap="round" fill="none" />
-        <path d="M94 110 L104 132" stroke="#EC8956" strokeWidth="7" strokeLinecap="round" />
+        <path d="M55 106 Q80 115 105 106" stroke="#EC8956" strokeWidth="7" strokeLinecap="round" fill="none" />
+        <path d="M94 110 L102 130" stroke="#EC8956" strokeWidth="6" strokeLinecap="round" />
       </g>
     );
   }
@@ -357,15 +461,15 @@ function Accessory({ accessory }) {
   if (accessory === 'glasses') {
     return (
       <g fill="none" stroke="#2A2520" strokeWidth="2">
-        <circle cx="68" cy="56" r="8" />
-        <circle cx="92" cy="56" r="8" />
-        <path d="M76 56 L84 56" />
+        <circle cx="68" cy="56" r="7" />
+        <circle cx="92" cy="56" r="7" />
+        <path d="M75 56 L85 56" />
       </g>
     );
   }
 
   if (accessory === 'star') {
-    return <path d="M112 50 L116 58 L125 59 L118 65 L120 74 L112 70 L104 74 L106 65 L99 59 L108 58 Z" fill="#F4A87A" stroke="#2A2520" strokeWidth="2" />;
+    return <path d="M112 52 L115 58 L122 59 L117 64 L118 71 L112 68 L106 71 L107 64 L102 59 L109 58 Z" fill="#F4A87A" stroke="#2A2520" strokeWidth="2" />;
   }
 
   return null;

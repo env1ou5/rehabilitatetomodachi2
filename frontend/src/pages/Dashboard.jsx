@@ -8,11 +8,20 @@ import Journal from '../components/Journal.jsx';
 import CrisisBanner from '../components/CrisisBanner.jsx';
 import HardDayButton from '../components/HardDayButton.jsx';
 
+const SUPPORT_STYLE = {
+  self_guided: 'Self-guided',
+  group: 'Group',
+  therapy: 'Therapy',
+  outpatient: 'Outpatient',
+  inpatient: 'Inpatient',
+};
+
 export default function Dashboard({ onLogout }) {
   const [pet, setPet] = useState(null);
   const [quests, setQuests] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [questsRefreshing, setQuestsRefreshing] = useState(false);
 
   const refresh = async () => {
     try {
@@ -71,6 +80,20 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
+  const handleQuestGenerate = async ({ goal, support_style }) => {
+    setQuestsRefreshing(true);
+    setQuests([]);
+    setPet((current) => ({ ...current, recovery_goal: goal, support_style }));
+    try {
+      const result = await api.generateQuests({ goal, support_style });
+      setQuests(result.quests);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setQuestsRefreshing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-full flex items-center justify-center">
@@ -100,6 +123,8 @@ export default function Dashboard({ onLogout }) {
         </div>
       )}
 
+      <RecoveryFocusPanel pet={pet} onGenerate={handleQuestGenerate} generating={questsRefreshing} />
+
       {/* Pet stage */}
       <div className="card p-6 mb-6 animate-fade-in">
         <Pet pet={pet} onUpdate={handlePetUpdate} />
@@ -119,7 +144,7 @@ export default function Dashboard({ onLogout }) {
             {completedToday}/{quests.length}
           </span>
         </div>
-        <QuestList quests={quests} onToggle={handleQuestToggle} />
+        <QuestList quests={quests} onToggle={handleQuestToggle} loading={questsRefreshing} />
       </div>
 
       {/* Journal */}
@@ -136,5 +161,75 @@ export default function Dashboard({ onLogout }) {
         Be gentle with yourself today. 🌿
       </footer>
     </div>
+  );
+}
+
+function RecoveryFocusPanel({ pet, onGenerate, generating }) {
+  const [goal, setGoal] = useState(pet.recovery_goal || '');
+  const [supportStyle, setSupportStyle] = useState(pet.support_style || 'self_guided');
+
+  useEffect(() => {
+    setGoal(pet.recovery_goal || '');
+    setSupportStyle(pet.support_style || 'self_guided');
+  }, [pet.recovery_goal, pet.support_style]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!goal.trim()) return;
+
+    await onGenerate({ goal: goal.trim(), support_style: supportStyle });
+  };
+
+  const changeSupportStyle = async (value) => {
+    setSupportStyle(value);
+    if (goal.trim()) {
+      await onGenerate({ goal: goal.trim(), support_style: value });
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="card p-5 mb-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+        <div>
+          <h2 className="pixel-heading text-xl">What are you trying to fix?</h2>
+          <p className="text-sm text-ink/55 mt-1">
+            Type it however you would say it. The AI will make quests for that exact situation.
+          </p>
+        </div>
+        <label className="sm:w-44 shrink-0">
+          <span className="label">Rehab type</span>
+          <select
+            className="input py-1.5 text-sm"
+            value={supportStyle}
+            disabled={generating}
+            onChange={(e) => changeSupportStyle(e.target.value)}
+          >
+            {Object.entries(SUPPORT_STYLE).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          className="input flex-1"
+          value={goal}
+          disabled={generating}
+          onChange={(e) => setGoal(e.target.value)}
+          placeholder="ex. alcohol cravings after work, smoking, doomscrolling, gambling urges..."
+          maxLength={500}
+        />
+        <button type="submit" className="btn-primary sm:w-40" disabled={generating || !goal.trim()}>
+          {generating ? 'Making...' : 'Make quests'}
+        </button>
+      </div>
+
+      {pet.recovery_goal && (
+        <div className="mt-3 text-xs text-ink/50">
+          Current quest focus: <span className="font-medium text-ink/70">{pet.recovery_goal}</span>
+        </div>
+      )}
+    </form>
   );
 }

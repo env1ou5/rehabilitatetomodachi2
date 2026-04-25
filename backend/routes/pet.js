@@ -78,6 +78,14 @@ router.patch('/', requireAuth, async (req, res) => {
     updates.push(`${field} = $${values.length}`);
   }
 
+  if (Object.prototype.hasOwnProperty.call(body, 'recovery_goal')) {
+    if (typeof body.recovery_goal !== 'string') {
+      return res.status(400).json({ error: 'invalid recovery_goal' });
+    }
+    values.push(body.recovery_goal.trim().slice(0, 500));
+    updates.push(`recovery_goal = $${values.length}`);
+  }
+
   if (updates.length === 0) {
     return res.status(400).json({ error: 'No pet updates provided' });
   }

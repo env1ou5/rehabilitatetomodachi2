@@ -44,6 +44,7 @@ export const api = {
   logHardDay:    (note)  => request('/pet/hard-day', { method: 'POST', body: { note } }),
 
   getQuests:        ()    => request('/quests'),
+  generateQuests:   (payload) => request('/quests/generate', { method: 'POST', body: payload }),
   completeQuest:    (id)  => request(`/quests/${id}/complete`, { method: 'POST' }),
   uncompleteQuest:  (id)  => request(`/quests/${id}/complete`, { method: 'DELETE' }),
 
