@@ -2,8 +2,8 @@
 
 A Tamagotchi-style companion for rehabilitation and recovery. Your virtual pet thrives when you do — daily quests around meetings, journaling, mindfulness, exercise, and connection keep both of you healthy.
 
-Information about hackathon challenge [here]([url](https://docs.google.com/presentation/d/1fCWPJ_CDTrLP011aLo8x_g7zIeGODHv3KxSqAj2VLkM/edit?usp=sharing  )).
-Presentation slideshow and explanation [here]([url](https://docs.google.com/presentation/d/1u62bREVNCxRR4dunQE8hX-HnvAcSqKbc/edit?usp=sharing&ouid=118235254943701465427&rtpof=true&sd=true)).
+ - Information about hackathon challenge [here](https://docs.google.com/presentation/d/1fCWPJ_CDTrLP011aLo8x_g7zIeGODHv3KxSqAj2VLkM/edit?usp=sharing  ).
+ - Presentation slideshow and explanation [here](https://docs.google.com/presentation/d/1u62bREVNCxRR4dunQE8hX-HnvAcSqKbc/edit?usp=sharing&ouid=118235254943701465427&rtpof=true&sd=true).
 
 > **A note on tone**: Recovery is hard and rarely linear. This app is built to be supportive, not punitive. There are no "game overs" — only gentle nudges to come back. If you're in crisis, please reach out: **988** (Suicide & Crisis Lifeline) or **SAMHSA: 1-800-662-4357**.
 
